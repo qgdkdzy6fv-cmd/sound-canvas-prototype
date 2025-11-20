@@ -108,7 +108,7 @@ function App() {
   };
 
   const animate = () => {
-    if (!audioProcessorRef.current || !visualRendererRef.current || !visualMapperRef.current) {
+    if (!audioProcessorRef.current || !visualRendererRef.current || !visualMapperRef.current || !isRecording) {
       return;
     }
 
@@ -122,7 +122,9 @@ function App() {
       });
     }
 
-    animationFrameRef.current = requestAnimationFrame(animate);
+    if (isRecording) {
+      animationFrameRef.current = requestAnimationFrame(animate);
+    }
   };
 
   const handleClear = () => {
@@ -183,10 +185,10 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${
+    <div className={`w-full h-full transition-colors duration-300 ${
       isDark ? 'bg-gray-900' : 'bg-gray-50'
     }`}>
-      <div className="container mx-auto px-4 py-6 h-screen flex flex-col">
+      <div className="container mx-auto px-4 py-6 h-full flex flex-col">
         <header className={`mb-6 transition-colors ${
           isDark ? 'text-white' : 'text-gray-900'
         }`}>

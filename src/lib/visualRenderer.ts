@@ -65,7 +65,7 @@ export class VisualRenderer {
     this.animationTime += deltaTime;
 
     const amplitudeScaled = audioFeatures.amplitude * options.sensitivity;
-    if (amplitudeScaled < 0.1) {
+    if (amplitudeScaled < 0.02) {
       this.updateAnimatedElements(now);
       return;
     }

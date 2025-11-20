@@ -47,11 +47,6 @@ export class AudioProcessor {
     this.analyser.getByteFrequencyData(this.frequencyBins);
 
     const amplitude = this.calculateAmplitude(this.dataArray);
-
-    if (amplitude < 0.1) {
-      return null;
-    }
-
     const dominantFrequency = this.getDominantFrequency();
     const { low, mid, high } = this.getFrequencyBands();
     const signature = this.generateSignature(dominantFrequency, low, mid, high);
