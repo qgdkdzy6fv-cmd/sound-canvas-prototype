@@ -4,10 +4,12 @@ import { VisualMapper } from './lib/visualMapper';
 import { VisualRenderer } from './lib/visualRenderer';
 import { StorageService, Artwork } from './lib/storage';
 import { ExportUtils } from './lib/exportUtils';
+import { AudioDeviceManager } from './lib/audioDeviceManager';
 import { Controls } from './components/Controls';
 import { ExportDialog, ExportOptions } from './components/ExportDialog';
 import { Gallery } from './components/Gallery';
 import { PermissionDialog } from './components/PermissionDialog';
+import { AudioDeviceDisplay } from './components/AudioDeviceDisplay';
 import { Palette } from 'lucide-react';
 
 function App() {
@@ -15,6 +17,7 @@ function App() {
   const audioProcessorRef = useRef<AudioProcessor | null>(null);
   const visualMapperRef = useRef<VisualMapper | null>(null);
   const visualRendererRef = useRef<VisualRenderer | null>(null);
+  const deviceManagerRef = useRef<AudioDeviceManager | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
 
@@ -44,6 +47,11 @@ function App() {
       visualRendererRef.current = new VisualRenderer(canvas);
       visualMapperRef.current = new VisualMapper();
 
+      deviceManagerRef.current = new AudioDeviceManager();
+      deviceManagerRef.current.initialize().catch(err => {
+        console.error('Failed to initialize device manager:', err);
+      });
+
       return () => {
         window.removeEventListener('resize', updateSize);
         if (animationFrameRef.current) {
@@ -63,6 +71,10 @@ function App() {
   const handlePermissionGranted = async () => {
     setShowPermissionDialog(false);
     await startRecording();
+
+    if (deviceManagerRef.current) {
+      await deviceManagerRef.current.refreshDevices();
+    }
   };
 
   const handlePermissionCancelled = () => {
@@ -227,7 +239,7 @@ function App() {
             )}
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-4">
             <Controls
               isRecording={isRecording}
               onToggleRecording={toggleRecording}
@@ -242,6 +254,12 @@ function App() {
               isDark={isDark}
               onToggleTheme={() => setIsDark(!isDark)}
             />
+            {deviceManagerRef.current && (
+              <AudioDeviceDisplay
+                deviceManager={deviceManagerRef.current}
+                isDark={isDark}
+              />
+            )}
           </div>
         </div>
       </div>
