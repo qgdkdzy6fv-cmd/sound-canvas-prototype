@@ -50,12 +50,18 @@ export function AudioDeviceDisplay({ deviceManager, isDark }: AudioDeviceDisplay
       isDark ? 'bg-gray-800/50' : 'bg-gray-100/50'
     }`}>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold opacity-70">Audio Devices</h3>
+        <h3 className={`text-sm font-semibold ${
+          isDark ? 'text-gray-200' : 'text-gray-700'
+        }`}>
+          Audio Devices
+        </h3>
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
           className={`p-1.5 rounded-lg transition-colors ${
-            isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
+            isDark
+              ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+              : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
           } ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
           title="Refresh devices"
         >
@@ -65,9 +71,9 @@ export function AudioDeviceDisplay({ deviceManager, isDark }: AudioDeviceDisplay
 
       {error && (
         <div className={`mb-3 p-2 rounded-lg flex items-center gap-2 text-xs ${
-          isDark ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-600'
+          isDark ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-red-50 text-red-600 border border-red-200'
         }`}>
-          <AlertCircle className="w-3 h-3" />
+          <AlertCircle className="w-3 h-3 flex-shrink-0" />
           {error}
         </div>
       )}
@@ -75,37 +81,59 @@ export function AudioDeviceDisplay({ deviceManager, isDark }: AudioDeviceDisplay
       <div className="space-y-3">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Mic className="w-3.5 h-3.5 opacity-70" />
-            <span className="text-xs font-medium opacity-70">Input</span>
+            <Mic className={`w-3.5 h-3.5 ${
+              isDark ? 'text-gray-300' : 'text-gray-600'
+            }`} />
+            <span className={`text-xs font-medium ${
+              isDark ? 'text-gray-300' : 'text-gray-600'
+            }`}>
+              Input
+            </span>
           </div>
           {devices.input ? (
-            <div className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+            <div className={`text-xs ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
               <div className="font-medium mb-0.5">{devices.input.label}</div>
-              <div className={`text-[10px] font-mono ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+              <div className={`text-[10px] font-mono ${
+                isDark ? 'text-gray-400' : 'text-gray-500'
+              }`}>
                 ID: {truncateId(devices.input.deviceId)}
               </div>
             </div>
           ) : (
-            <div className={`text-xs italic ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+            <div className={`text-xs italic ${
+              isDark ? 'text-gray-400' : 'text-gray-500'
+            }`}>
               No input device available
             </div>
           )}
         </div>
 
-        <div className={`border-t ${isDark ? 'border-gray-700' : 'border-gray-300'} pt-3`}>
+        <div className={`border-t ${
+          isDark ? 'border-gray-700' : 'border-gray-300'
+        } pt-3`}>
           <div className="flex items-center gap-2 mb-1">
-            <Speaker className="w-3.5 h-3.5 opacity-70" />
-            <span className="text-xs font-medium opacity-70">Output</span>
+            <Speaker className={`w-3.5 h-3.5 ${
+              isDark ? 'text-gray-300' : 'text-gray-600'
+            }`} />
+            <span className={`text-xs font-medium ${
+              isDark ? 'text-gray-300' : 'text-gray-600'
+            }`}>
+              Output
+            </span>
           </div>
           {devices.output ? (
-            <div className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+            <div className={`text-xs ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
               <div className="font-medium mb-0.5">{devices.output.label}</div>
-              <div className={`text-[10px] font-mono ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+              <div className={`text-[10px] font-mono ${
+                isDark ? 'text-gray-400' : 'text-gray-500'
+              }`}>
                 ID: {truncateId(devices.output.deviceId)}
               </div>
             </div>
           ) : (
-            <div className={`text-xs italic ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+            <div className={`text-xs italic ${
+              isDark ? 'text-gray-400' : 'text-gray-500'
+            }`}>
               No output device available
             </div>
           )}
