@@ -211,8 +211,8 @@ function App() {
           </div>
         )}
 
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-0">
-          <div className="lg:col-span-3 relative rounded-2xl overflow-hidden shadow-2xl">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-0 overflow-hidden">
+          <div className="lg:col-span-3 relative rounded-2xl overflow-hidden shadow-2xl min-h-0">
             <canvas
               ref={canvasRef}
               className={`w-full h-full ${
@@ -242,32 +242,34 @@ function App() {
             )}
           </div>
 
-          <div className="lg:col-span-1 space-y-4">
-            <Controls
-              isRecording={isRecording}
-              onToggleRecording={toggleRecording}
-              onClear={handleClear}
-              onSave={handleSave}
-              onExport={() => setShowExportDialog(true)}
-              onGallery={() => setShowGallery(true)}
-              sensitivity={sensitivity}
-              onSensitivityChange={setSensitivity}
-              opacity={opacity}
-              onOpacityChange={setOpacity}
-              isDark={isDark}
-              onToggleTheme={() => setIsDark(!isDark)}
-            />
-            <AudioSensitivityIndicator
-              isActive={isRecording}
-              sensitivity={sensitivity}
-              isDark={isDark}
-            />
-            {deviceManagerRef.current && (
-              <AudioDeviceDisplay
-                deviceManager={deviceManagerRef.current}
+          <div className="lg:col-span-1 overflow-y-auto overflow-x-hidden min-h-0">
+            <div className="space-y-4 pb-4">
+              <Controls
+                isRecording={isRecording}
+                onToggleRecording={toggleRecording}
+                onClear={handleClear}
+                onSave={handleSave}
+                onExport={() => setShowExportDialog(true)}
+                onGallery={() => setShowGallery(true)}
+                sensitivity={sensitivity}
+                onSensitivityChange={setSensitivity}
+                opacity={opacity}
+                onOpacityChange={setOpacity}
+                isDark={isDark}
+                onToggleTheme={() => setIsDark(!isDark)}
+              />
+              <AudioSensitivityIndicator
+                isActive={isRecording}
+                sensitivity={sensitivity}
                 isDark={isDark}
               />
-            )}
+              {deviceManagerRef.current && (
+                <AudioDeviceDisplay
+                  deviceManager={deviceManagerRef.current}
+                  isDark={isDark}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
