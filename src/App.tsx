@@ -10,6 +10,7 @@ import { ExportDialog, ExportOptions } from './components/ExportDialog';
 import { Gallery } from './components/Gallery';
 import { PermissionDialog } from './components/PermissionDialog';
 import { AudioDeviceDisplay } from './components/AudioDeviceDisplay';
+import { AudioSensitivityIndicator } from './components/AudioSensitivityIndicator';
 import { Palette } from 'lucide-react';
 
 function App() {
@@ -253,6 +254,11 @@ function App() {
               onOpacityChange={setOpacity}
               isDark={isDark}
               onToggleTheme={() => setIsDark(!isDark)}
+            />
+            <AudioSensitivityIndicator
+              isActive={isRecording}
+              sensitivity={sensitivity}
+              isDark={isDark}
             />
             {deviceManagerRef.current && (
               <AudioDeviceDisplay
