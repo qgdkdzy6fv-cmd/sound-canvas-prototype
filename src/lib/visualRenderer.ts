@@ -580,6 +580,10 @@ export class VisualRenderer {
     this.animatedShapes = [];
   }
 
+  hasActiveElements(): boolean {
+    return this.particles.length > 0 || this.animatedShapes.length > 0;
+  }
+
   getImageData(): string {
     return this.ctx.canvas.toDataURL('image/png');
   }

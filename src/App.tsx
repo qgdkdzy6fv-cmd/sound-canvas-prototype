@@ -103,26 +103,57 @@ function App() {
   const stopRecording = () => {
     isRecordingRef.current = false;
     setIsRecording(false);
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
+
     if (audioProcessorRef.current) {
       audioProcessorRef.current.stop();
       audioProcessorRef.current = null;
     }
+
+    if (fadeEnabled && visualRendererRef.current?.hasActiveElements()) {
+      animate();
+    } else if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
   };
 
   const animate = () => {
-    if (!audioProcessorRef.current || !visualRendererRef.current || !visualMapperRef.current || !isRecordingRef.current) {
+    if (!visualRendererRef.current || !visualMapperRef.current) {
       return;
     }
 
-    const audioFeatures = audioProcessorRef.current.getAudioFeatures();
+    const hasAudio = audioProcessorRef.current && isRecordingRef.current;
 
-    if (audioFeatures) {
-      const mapping = visualMapperRef.current.getOrCreateMapping(audioFeatures);
+    if (hasAudio) {
+      const audioFeatures = audioProcessorRef.current.getAudioFeatures();
 
-      visualRendererRef.current.render(mapping, audioFeatures, {
+      if (audioFeatures) {
+        const mapping = visualMapperRef.current.getOrCreateMapping(audioFeatures);
+
+        visualRendererRef.current.render(mapping, audioFeatures, {
+          globalOpacity: opacity,
+          sensitivity,
+          fadeEnabled,
+          fadeDuration: fadeDuration * 1000
+        });
+      }
+    } else if (fadeEnabled && visualRendererRef.current.hasActiveElements()) {
+      const dummyAudioFeatures = {
+        amplitude: 0,
+        frequency: 0,
+        isSilent: true
+      };
+      const dummyMapping = {
+        id: '',
+        soundPattern: '',
+        visualType: 'geometric' as const,
+        colorPrimary: '#000000',
+        colorSecondary: '#000000',
+        movement: 'float' as const,
+        sizeBase: 0,
+        shapeType: 'circle' as const
+      };
+
+      visualRendererRef.current.render(dummyMapping, dummyAudioFeatures, {
         globalOpacity: opacity,
         sensitivity,
         fadeEnabled,
@@ -130,7 +161,7 @@ function App() {
       });
     }
 
-    if (isRecordingRef.current) {
+    if (isRecordingRef.current || (fadeEnabled && visualRendererRef.current.hasActiveElements())) {
       animationFrameRef.current = requestAnimationFrame(animate);
     }
   };
