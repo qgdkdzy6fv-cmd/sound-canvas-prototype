@@ -318,6 +318,11 @@ function App() {
                   }`}>
                     Make sounds and watch them transform into visuals
                   </p>
+                  <p className={`text-xs mt-3 px-4 py-2 rounded-lg ${
+                    isDark ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-700/50' : 'bg-yellow-100 text-yellow-800 border border-yellow-300'
+                  }`}>
+                    Warning: May contain flashing lights and rapid visual changes
+                  </p>
                 </div>
               </div>
             )}
