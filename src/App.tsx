@@ -90,6 +90,23 @@ function App() {
       setIsRecording(true);
       startTimeRef.current = Date.now();
       animate();
+
+      const testInterval = setInterval(() => {
+        if (visualRendererRef.current && canvasRef.current) {
+          const ctx = canvasRef.current.getContext('2d');
+          if (ctx) {
+            const x = Math.random() * canvasRef.current.width;
+            const y = Math.random() * canvasRef.current.height;
+            ctx.fillStyle = `hsl(${Math.random() * 360}, 70%, 50%)`;
+            ctx.beginPath();
+            ctx.arc(x, y, 30, 0, Math.PI * 2);
+            ctx.fill();
+            console.log('FORCED TEST CIRCLE DRAWN at', x, y);
+          }
+        }
+      }, 1000);
+
+      (window as any).testInterval = testInterval;
     } catch (err) {
       setError('Unable to access microphone. Please grant permission and try again.');
       console.error(err);
@@ -105,6 +122,9 @@ function App() {
       audioProcessorRef.current.stop();
       audioProcessorRef.current = null;
     }
+    if ((window as any).testInterval) {
+      clearInterval((window as any).testInterval);
+    }
   };
 
   const animate = () => {
@@ -114,20 +134,25 @@ function App() {
 
     const audioFeatures = audioProcessorRef.current.getAudioFeatures();
 
+    console.log('=== ANIMATE FRAME ===');
+    console.log('audioFeatures:', audioFeatures);
+
     if (audioFeatures) {
+      console.log('Audio amplitude:', audioFeatures.amplitude);
+      console.log('Sensitivity:', sensitivity);
+      console.log('Will try to render...');
+
       const mapping = visualMapperRef.current.getOrCreateMapping(audioFeatures);
+      console.log('Mapping:', mapping);
+
       visualRendererRef.current.render(mapping, audioFeatures, {
         globalOpacity: opacity,
         sensitivity
       });
 
-      if (audioFeatures.amplitude > 0.05) {
-        console.log('Audio detected:', {
-          amplitude: audioFeatures.amplitude.toFixed(3),
-          frequency: Math.round(audioFeatures.frequency),
-          scaledAmplitude: (audioFeatures.amplitude * sensitivity * 2).toFixed(3)
-        });
-      }
+      console.log('Render call completed');
+    } else {
+      console.log('NO AUDIO FEATURES!');
     }
 
     if (isRecording) {
