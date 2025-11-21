@@ -147,7 +147,8 @@ function App() {
         Frequency: ${Math.round(audioFeatures.frequency)}Hz
         Sensitivity: ${sensitivity}
         Shape: ${mapping.visualType}
-        Color: ${mapping.primaryColor}
+        Color: ${mapping.colorPrimary}
+        Drawing: ${audioFeatures.amplitude * sensitivity > 0.01 ? 'YES' : 'TOO QUIET'}
       `);
 
       visualRendererRef.current.render(mapping, audioFeatures, {

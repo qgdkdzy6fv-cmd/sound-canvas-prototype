@@ -234,7 +234,7 @@ export class VisualRenderer {
       shape.x += shape.vx * (1 / 60);
       shape.y += shape.vy * (1 / 60);
       shape.rotation += shape.rotationSpeed * (1 / 60);
-      shape.scale = Math.min(easedProgress * shape.scaleSpeed, 2);
+      shape.scale = 0.5 + easedProgress * shape.scaleSpeed;
 
       const opacityMod = Math.sin(this.animationTime * 2 + shape.opacityPhase) * 0.2 + 0.8;
       const currentOpacity = shape.baseOpacity * (1 - progress * 0.3) * opacityMod;
