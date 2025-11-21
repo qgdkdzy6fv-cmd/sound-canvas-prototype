@@ -138,6 +138,8 @@ function App() {
     const hasAudio = audioProcessorRef.current && isRecordingRef.current;
     const hasActiveElements = visualRendererRef.current.hasActiveElements();
 
+    console.log('Animate:', { hasAudio, hasActiveElements, fadeEnabled, isRecording: isRecordingRef.current });
+
     if (hasAudio) {
       const audioFeatures = audioProcessorRef.current.getAudioFeatures();
 
@@ -152,6 +154,7 @@ function App() {
         });
       }
     } else if (fadeEnabled && hasActiveElements) {
+      console.log('Rendering fade with dummy data');
       const dummyAudioFeatures = {
         amplitude: 0,
         frequency: 0,
@@ -178,6 +181,8 @@ function App() {
 
     if (isRecordingRef.current || (fadeEnabled && hasActiveElements)) {
       animationFrameRef.current = requestAnimationFrame(animate);
+    } else {
+      console.log('Animation loop stopping');
     }
   };
 

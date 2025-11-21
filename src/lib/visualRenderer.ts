@@ -73,6 +73,8 @@ export class VisualRenderer {
     this.lastFrameTime = now;
     this.animationTime += deltaTime;
 
+    console.log('Render called:', { fadeEnabled: this.currentOptions.fadeEnabled, fadeDuration: this.currentOptions.fadeDuration, amplitude: audioFeatures.amplitude, activeShapes: this.animatedShapes.length, activeParticles: this.particles.length });
+
     if (this.currentOptions.fadeEnabled) {
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
@@ -81,6 +83,7 @@ export class VisualRenderer {
     const threshold = 0.02;
 
     if (amplitudeScaled < threshold) {
+      console.log('Below threshold, updating elements only');
       this.updateAnimatedElements(now);
       return;
     }
