@@ -11,6 +11,7 @@ import { Gallery } from './components/Gallery';
 import { PermissionDialog } from './components/PermissionDialog';
 import { AudioDeviceDisplay } from './components/AudioDeviceDisplay';
 import { AudioSensitivityIndicator } from './components/AudioSensitivityIndicator';
+import { ConfirmationDialog } from './components/ConfirmationDialog';
 import { Palette } from 'lucide-react';
 
 function App() {
@@ -34,6 +35,8 @@ function App() {
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasPermission, setHasPermission] = useState(false);
+  const [showFadeConfirmation, setShowFadeConfirmation] = useState(false);
+  const [pendingFadeState, setPendingFadeState] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -240,6 +243,28 @@ function App() {
     }
   };
 
+  const handleFadeToggle = (newValue: boolean) => {
+    setPendingFadeState(newValue);
+    setShowFadeConfirmation(true);
+  };
+
+  const confirmFadeToggle = () => {
+    if (pendingFadeState !== null) {
+      if (isRecording) {
+        stopRecording();
+      }
+      handleClear();
+      setFadeEnabled(pendingFadeState);
+    }
+    setShowFadeConfirmation(false);
+    setPendingFadeState(null);
+  };
+
+  const cancelFadeToggle = () => {
+    setShowFadeConfirmation(false);
+    setPendingFadeState(null);
+  };
+
   return (
     <div className={`w-full h-full transition-colors duration-300 ${
       isDark ? 'bg-gray-900' : 'bg-gray-50'
@@ -312,7 +337,7 @@ function App() {
                 opacity={opacity}
                 onOpacityChange={setOpacity}
                 fadeEnabled={fadeEnabled}
-                onFadeEnabledChange={setFadeEnabled}
+                onFadeEnabledChange={handleFadeToggle}
                 fadeDuration={fadeDuration}
                 onFadeDurationChange={setFadeDuration}
                 isDark={isDark}
@@ -357,6 +382,14 @@ function App() {
           isDark={isDark}
         />
       )}
+
+      <ConfirmationDialog
+        isOpen={showFadeConfirmation}
+        title="Fade Away Toggle"
+        message={pendingFadeState ? "When enabling fade away, the current canvas will be cleared and you will need to press start recording again." : "When disabling fade away, the current canvas will be cleared and you will need to press start recording again."}
+        onConfirm={confirmFadeToggle}
+        onCancel={cancelFadeToggle}
+      />
     </div>
   );
 }
