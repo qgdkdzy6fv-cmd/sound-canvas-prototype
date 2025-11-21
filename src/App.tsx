@@ -21,6 +21,7 @@ function App() {
   const deviceManagerRef = useRef<AudioDeviceManager | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
+  const isRecordingRef = useRef<boolean>(false);
 
   const [isRecording, setIsRecording] = useState(false);
   const [sensitivity, setSensitivity] = useState(1);
@@ -88,8 +89,9 @@ function App() {
       setError(null);
       audioProcessorRef.current = new AudioProcessor();
       await audioProcessorRef.current.initialize();
-      setIsRecording(true);
       startTimeRef.current = Date.now();
+      isRecordingRef.current = true;
+      setIsRecording(true);
       animate();
 
       const testInterval = setInterval(() => {
@@ -115,6 +117,7 @@ function App() {
   };
 
   const stopRecording = () => {
+    isRecordingRef.current = false;
     setIsRecording(false);
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -129,7 +132,8 @@ function App() {
   };
 
   const animate = () => {
-    if (!audioProcessorRef.current || !visualRendererRef.current || !visualMapperRef.current || !isRecording) {
+    if (!audioProcessorRef.current || !visualRendererRef.current || !visualMapperRef.current || !isRecordingRef.current) {
+      setDebugInfo('Animation stopped: ' + (!audioProcessorRef.current ? 'no audio' : !visualRendererRef.current ? 'no renderer' : !visualMapperRef.current ? 'no mapper' : 'not recording'));
       return;
     }
 
@@ -154,7 +158,7 @@ function App() {
       setDebugInfo('NO AUDIO FEATURES!');
     }
 
-    if (isRecording) {
+    if (isRecordingRef.current) {
       animationFrameRef.current = requestAnimationFrame(animate);
     }
   };
