@@ -30,6 +30,7 @@ function App() {
   const [showGallery, setShowGallery] = useState(false);
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string>('Waiting...');
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -134,25 +135,23 @@ function App() {
 
     const audioFeatures = audioProcessorRef.current.getAudioFeatures();
 
-    console.log('=== ANIMATE FRAME ===');
-    console.log('audioFeatures:', audioFeatures);
-
     if (audioFeatures) {
-      console.log('Audio amplitude:', audioFeatures.amplitude);
-      console.log('Sensitivity:', sensitivity);
-      console.log('Will try to render...');
-
       const mapping = visualMapperRef.current.getOrCreateMapping(audioFeatures);
-      console.log('Mapping:', mapping);
+
+      setDebugInfo(`
+        Amplitude: ${audioFeatures.amplitude.toFixed(4)}
+        Frequency: ${Math.round(audioFeatures.frequency)}Hz
+        Sensitivity: ${sensitivity}
+        Shape: ${mapping.visualType}
+        Color: ${mapping.primaryColor}
+      `);
 
       visualRendererRef.current.render(mapping, audioFeatures, {
         globalOpacity: opacity,
         sensitivity
       });
-
-      console.log('Render call completed');
     } else {
-      console.log('NO AUDIO FEATURES!');
+      setDebugInfo('NO AUDIO FEATURES!');
     }
 
     if (isRecording) {
@@ -271,6 +270,11 @@ function App() {
                     Make sounds and watch them transform into visuals
                   </p>
                 </div>
+              </div>
+            )}
+            {isRecording && (
+              <div className="absolute top-4 left-4 bg-black/80 text-white p-4 rounded-lg font-mono text-xs whitespace-pre pointer-events-none">
+                {debugInfo}
               </div>
             )}
           </div>
