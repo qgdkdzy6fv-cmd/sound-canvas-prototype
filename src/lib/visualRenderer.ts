@@ -73,43 +73,63 @@ export class VisualRenderer {
     this.lastFrameTime = now;
     this.animationTime += deltaTime;
 
-    console.log('Render called:', { fadeEnabled: this.currentOptions.fadeEnabled, fadeDuration: this.currentOptions.fadeDuration, amplitude: audioFeatures.amplitude, activeShapes: this.animatedShapes.length, activeParticles: this.particles.length });
-
-    if (this.currentOptions.fadeEnabled) {
-      this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    }
-
     const amplitudeScaled = audioFeatures.amplitude * options.sensitivity;
     const threshold = 0.02;
 
-    if (amplitudeScaled < threshold) {
-      console.log('Below threshold, updating elements only');
+    if (this.currentOptions.fadeEnabled) {
+      this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+
+      if (amplitudeScaled >= threshold) {
+        const x = Math.random() * this.ctx.canvas.width;
+        const y = Math.random() * this.ctx.canvas.height;
+        const size = Math.max(mapping.sizeBase * (1 + amplitudeScaled * 3), 40);
+        const opacity = 0.8;
+
+        switch (mapping.visualType) {
+          case 'geometric':
+            this.createAnimatedShape('geometric', mapping, x, y, size, opacity);
+            break;
+          case 'particle':
+            this.createAnimatedParticles(mapping, x, y, size, opacity, amplitudeScaled, now);
+            break;
+          case 'brush':
+            this.createAnimatedShape('brush', mapping, x, y, size, opacity);
+            break;
+          case 'organic':
+            this.createAnimatedShape('organic', mapping, x, y, size, opacity);
+            break;
+        }
+      }
+
       this.updateAnimatedElements(now);
-      return;
+    } else {
+      if (amplitudeScaled < threshold) {
+        this.updateAnimatedElements(now);
+        return;
+      }
+
+      const x = Math.random() * this.ctx.canvas.width;
+      const y = Math.random() * this.ctx.canvas.height;
+      const size = Math.max(mapping.sizeBase * (1 + amplitudeScaled * 3), 40);
+      const opacity = 0.8;
+
+      switch (mapping.visualType) {
+        case 'geometric':
+          this.createAnimatedShape('geometric', mapping, x, y, size, opacity);
+          break;
+        case 'particle':
+          this.createAnimatedParticles(mapping, x, y, size, opacity, amplitudeScaled, now);
+          break;
+        case 'brush':
+          this.createAnimatedShape('brush', mapping, x, y, size, opacity);
+          break;
+        case 'organic':
+          this.createAnimatedShape('organic', mapping, x, y, size, opacity);
+          break;
+      }
+
+      this.updateAnimatedElements(now);
     }
-
-    const x = Math.random() * this.ctx.canvas.width;
-    const y = Math.random() * this.ctx.canvas.height;
-
-    const size = Math.max(mapping.sizeBase * (1 + amplitudeScaled * 3), 40);
-    const opacity = 0.8;
-
-    switch (mapping.visualType) {
-      case 'geometric':
-        this.createAnimatedShape('geometric', mapping, x, y, size, opacity);
-        break;
-      case 'particle':
-        this.createAnimatedParticles(mapping, x, y, size, opacity, amplitudeScaled, now);
-        break;
-      case 'brush':
-        this.createAnimatedShape('brush', mapping, x, y, size, opacity);
-        break;
-      case 'organic':
-        this.createAnimatedShape('organic', mapping, x, y, size, opacity);
-        break;
-    }
-
-    this.updateAnimatedElements(now);
   }
 
   private randomDuration(): number {
