@@ -65,9 +65,19 @@ export class AudioProcessor {
     let sum = 0;
     for (let i = 0; i < data.length; i++) {
       const normalized = (data[i] - 128) / 128;
-      sum += normalized * normalized;
+      sum += Math.abs(normalized);
     }
-    return Math.sqrt(sum / data.length);
+    const avgAmplitude = sum / data.length;
+
+    if (!this.frequencyBins) return avgAmplitude;
+
+    let freqSum = 0;
+    for (let i = 0; i < this.frequencyBins.length; i++) {
+      freqSum += this.frequencyBins[i];
+    }
+    const freqAverage = freqSum / this.frequencyBins.length / 255;
+
+    return Math.max(avgAmplitude, freqAverage) * 1.5;
   }
 
   private getDominantFrequency(): number {

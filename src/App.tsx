@@ -120,6 +120,14 @@ function App() {
         globalOpacity: opacity,
         sensitivity
       });
+
+      if (audioFeatures.amplitude > 0.05) {
+        console.log('Audio detected:', {
+          amplitude: audioFeatures.amplitude.toFixed(3),
+          frequency: Math.round(audioFeatures.frequency),
+          scaledAmplitude: (audioFeatures.amplitude * sensitivity * 2).toFixed(3)
+        });
+      }
     }
 
     if (isRecording) {

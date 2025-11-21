@@ -64,8 +64,8 @@ export class VisualRenderer {
     this.lastFrameTime = now;
     this.animationTime += deltaTime;
 
-    const amplitudeScaled = audioFeatures.amplitude * options.sensitivity;
-    if (amplitudeScaled < 0.02) {
+    const amplitudeScaled = audioFeatures.amplitude * options.sensitivity * 2;
+    if (amplitudeScaled < 0.01) {
       this.updateAnimatedElements(now);
       return;
     }
@@ -73,8 +73,11 @@ export class VisualRenderer {
     const x = Math.random() * this.ctx.canvas.width;
     const y = Math.random() * this.ctx.canvas.height;
 
-    const size = mapping.sizeBase * (1 + amplitudeScaled * 2);
-    const opacity = Math.min(mapping.opacityBase * options.globalOpacity * amplitudeScaled, 1);
+    const size = mapping.sizeBase * (1 + amplitudeScaled * 3);
+    const opacity = Math.min(
+      Math.max(mapping.opacityBase * options.globalOpacity * (0.3 + amplitudeScaled * 1.5), 0.2),
+      1
+    );
 
     switch (mapping.visualType) {
       case 'geometric':
