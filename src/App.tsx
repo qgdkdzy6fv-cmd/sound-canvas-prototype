@@ -33,6 +33,7 @@ function App() {
   const [showGallery, setShowGallery] = useState(false);
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasPermission, setHasPermission] = useState(false);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -56,6 +57,8 @@ function App() {
         console.error('Failed to initialize device manager:', err);
       });
 
+      requestMicrophonePermission();
+
       return () => {
         window.removeEventListener('resize', updateSize);
         if (animationFrameRef.current) {
@@ -68,12 +71,22 @@ function App() {
     }
   }, []);
 
-  const requestMicrophonePermission = () => {
-    setShowPermissionDialog(true);
+  const requestMicrophonePermission = async () => {
+    if (hasPermission) return;
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+      setHasPermission(true);
+      setError(null);
+    } catch (err) {
+      setShowPermissionDialog(true);
+    }
   };
 
   const handlePermissionGranted = async () => {
     setShowPermissionDialog(false);
+    setHasPermission(true);
     await startRecording();
 
     if (deviceManagerRef.current) {
@@ -109,10 +122,11 @@ function App() {
       audioProcessorRef.current = null;
     }
 
-    if (fadeEnabled && visualRendererRef.current?.hasActiveElements()) {
-      animate();
-    } else if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
+    if (!fadeEnabled || !visualRendererRef.current?.hasActiveElements()) {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
     }
   };
 
@@ -122,6 +136,7 @@ function App() {
     }
 
     const hasAudio = audioProcessorRef.current && isRecordingRef.current;
+    const hasActiveElements = visualRendererRef.current.hasActiveElements();
 
     if (hasAudio) {
       const audioFeatures = audioProcessorRef.current.getAudioFeatures();
@@ -136,7 +151,7 @@ function App() {
           fadeDuration: fadeDuration * 1000
         });
       }
-    } else if (fadeEnabled && visualRendererRef.current.hasActiveElements()) {
+    } else if (fadeEnabled && hasActiveElements) {
       const dummyAudioFeatures = {
         amplitude: 0,
         frequency: 0,
@@ -161,7 +176,7 @@ function App() {
       });
     }
 
-    if (isRecordingRef.current || (fadeEnabled && visualRendererRef.current.hasActiveElements())) {
+    if (isRecordingRef.current || (fadeEnabled && hasActiveElements)) {
       animationFrameRef.current = requestAnimationFrame(animate);
     }
   };
@@ -218,8 +233,10 @@ function App() {
   const toggleRecording = () => {
     if (isRecording) {
       stopRecording();
+    } else if (hasPermission) {
+      startRecording();
     } else {
-      requestMicrophonePermission();
+      setShowPermissionDialog(true);
     }
   };
 

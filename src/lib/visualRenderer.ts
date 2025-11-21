@@ -73,40 +73,63 @@ export class VisualRenderer {
     this.lastFrameTime = now;
     this.animationTime += deltaTime;
 
-    if (this.currentOptions.fadeEnabled) {
-      this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    }
-
     const amplitudeScaled = audioFeatures.amplitude * options.sensitivity;
     const threshold = 0.02;
 
-    if (amplitudeScaled < threshold) {
+    if (this.currentOptions.fadeEnabled) {
+      this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+
+      if (amplitudeScaled >= threshold) {
+        const x = Math.random() * this.ctx.canvas.width;
+        const y = Math.random() * this.ctx.canvas.height;
+        const size = Math.max(mapping.sizeBase * (1 + amplitudeScaled * 3), 40);
+        const opacity = 0.8;
+
+        switch (mapping.visualType) {
+          case 'geometric':
+            this.createAnimatedShape('geometric', mapping, x, y, size, opacity);
+            break;
+          case 'particle':
+            this.createAnimatedParticles(mapping, x, y, size, opacity, amplitudeScaled, now);
+            break;
+          case 'brush':
+            this.createAnimatedShape('brush', mapping, x, y, size, opacity);
+            break;
+          case 'organic':
+            this.createAnimatedShape('organic', mapping, x, y, size, opacity);
+            break;
+        }
+      }
+
       this.updateAnimatedElements(now);
-      return;
+    } else {
+      if (amplitudeScaled < threshold) {
+        this.updateAnimatedElements(now);
+        return;
+      }
+
+      const x = Math.random() * this.ctx.canvas.width;
+      const y = Math.random() * this.ctx.canvas.height;
+      const size = Math.max(mapping.sizeBase * (1 + amplitudeScaled * 3), 40);
+      const opacity = 0.8;
+
+      switch (mapping.visualType) {
+        case 'geometric':
+          this.createAnimatedShape('geometric', mapping, x, y, size, opacity);
+          break;
+        case 'particle':
+          this.createAnimatedParticles(mapping, x, y, size, opacity, amplitudeScaled, now);
+          break;
+        case 'brush':
+          this.createAnimatedShape('brush', mapping, x, y, size, opacity);
+          break;
+        case 'organic':
+          this.createAnimatedShape('organic', mapping, x, y, size, opacity);
+          break;
+      }
+
+      this.updateAnimatedElements(now);
     }
-
-    const x = Math.random() * this.ctx.canvas.width;
-    const y = Math.random() * this.ctx.canvas.height;
-
-    const size = Math.max(mapping.sizeBase * (1 + amplitudeScaled * 3), 40);
-    const opacity = 0.8;
-
-    switch (mapping.visualType) {
-      case 'geometric':
-        this.createAnimatedShape('geometric', mapping, x, y, size, opacity);
-        break;
-      case 'particle':
-        this.createAnimatedParticles(mapping, x, y, size, opacity, amplitudeScaled, now);
-        break;
-      case 'brush':
-        this.createAnimatedShape('brush', mapping, x, y, size, opacity);
-        break;
-      case 'organic':
-        this.createAnimatedShape('organic', mapping, x, y, size, opacity);
-        break;
-    }
-
-    this.updateAnimatedElements(now);
   }
 
   private randomDuration(): number {
@@ -211,10 +234,9 @@ export class VisualRenderer {
       const elapsed = now - shape.startTime;
 
       if (this.currentOptions.fadeEnabled) {
-        const fadeStartTime = this.currentOptions.fadeDuration;
-        const fadeDuration = 1500;
+        const totalDuration = this.currentOptions.fadeDuration;
 
-        if (elapsed > fadeStartTime + fadeDuration) {
+        if (elapsed > totalDuration) {
           this.animatedShapes.splice(i, 1);
           continue;
         }
@@ -227,12 +249,8 @@ export class VisualRenderer {
         shape.rotation += shape.rotationSpeed * (1 / 60);
         shape.scale = 0.5 + easedProgress * shape.scaleSpeed;
 
-        let currentOpacity = shape.baseOpacity;
-
-        if (elapsed > fadeStartTime) {
-          const fadeProgress = (elapsed - fadeStartTime) / fadeDuration;
-          currentOpacity = shape.baseOpacity * (1 - fadeProgress);
-        }
+        const fadeProgress = elapsed / totalDuration;
+        const currentOpacity = shape.baseOpacity * (1 - fadeProgress);
 
         const currentSize = shape.baseSize * shape.scale;
         this.renderShape(shape, currentSize, currentOpacity);
@@ -405,10 +423,9 @@ export class VisualRenderer {
       const elapsed = now - p.startTime;
 
       if (this.currentOptions.fadeEnabled) {
-        const fadeStartTime = this.currentOptions.fadeDuration;
-        const fadeDuration = 1500;
+        const totalDuration = this.currentOptions.fadeDuration;
 
-        if (elapsed > fadeStartTime + fadeDuration) {
+        if (elapsed > totalDuration) {
           this.particles.splice(i, 1);
           continue;
         }
@@ -421,11 +438,8 @@ export class VisualRenderer {
         p.rotation += p.rotationSpeed * (1 / 60);
         p.scale = 0.5 + easedProgress * (p.maxScale - 0.5);
 
-        let currentOpacity = 1;
-        if (elapsed > fadeStartTime) {
-          const fadeProgress = (elapsed - fadeStartTime) / fadeDuration;
-          currentOpacity = 1 - fadeProgress;
-        }
+        const fadeProgress = elapsed / totalDuration;
+        const currentOpacity = 1 - fadeProgress;
 
         this.ctx.save();
         this.ctx.globalAlpha = currentOpacity;
