@@ -74,30 +74,23 @@ export class VisualRenderer {
     this.lastFrameTime = now;
     this.animationTime += deltaTime;
 
-    const amplitudeScaled = audioFeatures.amplitude * options.sensitivity * 2;
+    const amplitudeScaled = Math.max(audioFeatures.amplitude * options.sensitivity * 2, 0.5);
 
     console.log('Render called:', {
       amplitude: audioFeatures.amplitude,
       sensitivity: options.sensitivity,
       amplitudeScaled,
-      threshold: 0.01,
-      willRender: amplitudeScaled >= 0.01,
+      rawAmplitude: audioFeatures.amplitude,
       canvasSize: `${this.ctx.canvas.width}x${this.ctx.canvas.height}`
     });
 
-    if (amplitudeScaled < 0.01) {
-      this.updateAnimatedElements(now);
-      return;
-    }
+    // REMOVED THRESHOLD - ALWAYS RENDER
 
     const x = Math.random() * this.ctx.canvas.width;
     const y = Math.random() * this.ctx.canvas.height;
 
-    const size = mapping.sizeBase * (1 + amplitudeScaled * 3);
-    const opacity = Math.min(
-      Math.max(mapping.opacityBase * options.globalOpacity * (0.3 + amplitudeScaled * 1.5), 0.2),
-      1
-    );
+    const size = Math.max(mapping.sizeBase * (1 + amplitudeScaled * 3), 40);
+    const opacity = 0.8;
 
     console.log('Creating shape:', {
       type: mapping.visualType,
@@ -165,7 +158,7 @@ export class VisualRenderer {
       duration,
       rotation: Math.random() * Math.PI * 2,
       rotationSpeed: (Math.random() - 0.5) * 2,
-      scale: 0.8,
+      scale: 1.2,
       scaleSpeed: 0.5 + Math.random() * 1,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
