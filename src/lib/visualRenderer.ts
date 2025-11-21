@@ -67,11 +67,22 @@ export class VisualRenderer {
     audioFeatures: AudioFeatures,
     options: RenderOptions
   ): void {
+    const wasFadeEnabled = this.currentOptions.fadeEnabled;
     this.currentOptions = options;
     const now = performance.now();
     const deltaTime = (now - this.lastFrameTime) / 1000;
     this.lastFrameTime = now;
     this.animationTime += deltaTime;
+
+    // If fade was just enabled, reset start times so existing shapes can fade
+    if (options.fadeEnabled && !wasFadeEnabled) {
+      for (const shape of this.animatedShapes) {
+        shape.startTime = now;
+      }
+      for (const particle of this.particles) {
+        particle.startTime = now;
+      }
+    }
 
     const amplitudeScaled = audioFeatures.amplitude * options.sensitivity;
     const threshold = 0.02;
