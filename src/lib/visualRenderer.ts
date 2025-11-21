@@ -52,16 +52,6 @@ export class VisualRenderer {
   constructor(canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d')!;
     this.lastFrameTime = performance.now();
-
-    console.log('VisualRenderer initialized:', {
-      canvas: canvas,
-      context: this.ctx,
-      canvasSize: `${canvas.width}x${canvas.height}`
-    });
-
-    this.ctx.fillStyle = 'red';
-    this.ctx.fillRect(50, 50, 100, 100);
-    console.log('Test rectangle drawn at startup');
   }
 
   render(
@@ -74,29 +64,19 @@ export class VisualRenderer {
     this.lastFrameTime = now;
     this.animationTime += deltaTime;
 
-    const amplitudeScaled = Math.max(audioFeatures.amplitude * options.sensitivity * 2, 0.5);
+    const amplitudeScaled = audioFeatures.amplitude * options.sensitivity;
+    const threshold = 0.02;
 
-    console.log('Render called:', {
-      amplitude: audioFeatures.amplitude,
-      sensitivity: options.sensitivity,
-      amplitudeScaled,
-      rawAmplitude: audioFeatures.amplitude,
-      canvasSize: `${this.ctx.canvas.width}x${this.ctx.canvas.height}`
-    });
-
-    // REMOVED THRESHOLD - ALWAYS RENDER
+    if (amplitudeScaled < threshold) {
+      this.updateAnimatedElements(now);
+      return;
+    }
 
     const x = Math.random() * this.ctx.canvas.width;
     const y = Math.random() * this.ctx.canvas.height;
 
     const size = Math.max(mapping.sizeBase * (1 + amplitudeScaled * 3), 40);
     const opacity = 0.8;
-
-    console.log('Creating shape:', {
-      type: mapping.visualType,
-      x, y, size, opacity,
-      color: mapping.colorPrimary
-    });
 
     switch (mapping.visualType) {
       case 'geometric':
@@ -114,9 +94,6 @@ export class VisualRenderer {
     }
 
     this.updateAnimatedElements(now);
-
-    console.log('Animated shapes count:', this.animatedShapes.length);
-    console.log('Particles count:', this.particles.length);
   }
 
   private randomDuration(): number {
@@ -216,15 +193,12 @@ export class VisualRenderer {
   }
 
   private updateAnimatedShapes(now: number): void {
-    console.log('updateAnimatedShapes called, count:', this.animatedShapes.length);
-
     for (let i = this.animatedShapes.length - 1; i >= 0; i--) {
       const shape = this.animatedShapes[i];
       const elapsed = now - shape.startTime;
       const progress = Math.min(elapsed / shape.duration, 1);
 
       if (progress >= 1) {
-        console.log('Removing completed shape');
         this.animatedShapes.splice(i, 1);
         continue;
       }
@@ -240,14 +214,11 @@ export class VisualRenderer {
       const currentOpacity = shape.baseOpacity * (1 - progress * 0.3) * opacityMod;
       const currentSize = shape.baseSize * shape.scale;
 
-      console.log('Rendering shape:', { progress, scale: shape.scale, currentSize, currentOpacity });
       this.renderShape(shape, currentSize, currentOpacity);
     }
   }
 
   private renderShape(shape: AnimatedShape, size: number, opacity: number): void {
-    console.log('renderShape called:', { size, opacity, x: shape.x, y: shape.y });
-
     this.ctx.save();
     this.ctx.globalAlpha = opacity;
     this.ctx.translate(shape.x, shape.y);
@@ -257,8 +228,6 @@ export class VisualRenderer {
     gradient.addColorStop(0, shape.mapping.colorPrimary);
     gradient.addColorStop(1, shape.mapping.colorSecondary);
     this.ctx.fillStyle = gradient;
-
-    console.log('Drawing with colors:', shape.mapping.colorPrimary, shape.mapping.colorSecondary);
 
     switch (shape.type) {
       case 'geometric':

@@ -31,7 +31,6 @@ function App() {
   const [showGallery, setShowGallery] = useState(false);
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [debugInfo, setDebugInfo] = useState<string>('Waiting...');
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -93,23 +92,6 @@ function App() {
       isRecordingRef.current = true;
       setIsRecording(true);
       animate();
-
-      const testInterval = setInterval(() => {
-        if (visualRendererRef.current && canvasRef.current) {
-          const ctx = canvasRef.current.getContext('2d');
-          if (ctx) {
-            const x = Math.random() * canvasRef.current.width;
-            const y = Math.random() * canvasRef.current.height;
-            ctx.fillStyle = `hsl(${Math.random() * 360}, 70%, 50%)`;
-            ctx.beginPath();
-            ctx.arc(x, y, 30, 0, Math.PI * 2);
-            ctx.fill();
-            console.log('FORCED TEST CIRCLE DRAWN at', x, y);
-          }
-        }
-      }, 1000);
-
-      (window as any).testInterval = testInterval;
     } catch (err) {
       setError('Unable to access microphone. Please grant permission and try again.');
       console.error(err);
@@ -126,14 +108,10 @@ function App() {
       audioProcessorRef.current.stop();
       audioProcessorRef.current = null;
     }
-    if ((window as any).testInterval) {
-      clearInterval((window as any).testInterval);
-    }
   };
 
   const animate = () => {
     if (!audioProcessorRef.current || !visualRendererRef.current || !visualMapperRef.current || !isRecordingRef.current) {
-      setDebugInfo('Animation stopped: ' + (!audioProcessorRef.current ? 'no audio' : !visualRendererRef.current ? 'no renderer' : !visualMapperRef.current ? 'no mapper' : 'not recording'));
       return;
     }
 
@@ -142,21 +120,10 @@ function App() {
     if (audioFeatures) {
       const mapping = visualMapperRef.current.getOrCreateMapping(audioFeatures);
 
-      setDebugInfo(`
-        Amplitude: ${audioFeatures.amplitude.toFixed(4)}
-        Frequency: ${Math.round(audioFeatures.frequency)}Hz
-        Sensitivity: ${sensitivity}
-        Shape: ${mapping.visualType}
-        Color: ${mapping.colorPrimary}
-        Drawing: ${audioFeatures.amplitude * sensitivity > 0.01 ? 'YES' : 'TOO QUIET'}
-      `);
-
       visualRendererRef.current.render(mapping, audioFeatures, {
         globalOpacity: opacity,
         sensitivity
       });
-    } else {
-      setDebugInfo('NO AUDIO FEATURES!');
     }
 
     if (isRecordingRef.current) {
@@ -275,11 +242,6 @@ function App() {
                     Make sounds and watch them transform into visuals
                   </p>
                 </div>
-              </div>
-            )}
-            {isRecording && (
-              <div className="absolute top-4 left-4 bg-black/80 text-white p-4 rounded-lg font-mono text-xs whitespace-pre pointer-events-none">
-                {debugInfo}
               </div>
             )}
           </div>
