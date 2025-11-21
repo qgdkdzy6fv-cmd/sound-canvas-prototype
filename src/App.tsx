@@ -27,6 +27,8 @@ function App() {
   const [sensitivity, setSensitivity] = useState(1);
   const [opacity, setOpacity] = useState(0.7);
   const [isDark, setIsDark] = useState(true);
+  const [fadeEnabled, setFadeEnabled] = useState(false);
+  const [fadeDuration, setFadeDuration] = useState(3);
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
@@ -122,7 +124,9 @@ function App() {
 
       visualRendererRef.current.render(mapping, audioFeatures, {
         globalOpacity: opacity,
-        sensitivity
+        sensitivity,
+        fadeEnabled,
+        fadeDuration: fadeDuration * 1000
       });
     }
 
@@ -259,6 +263,10 @@ function App() {
                 onSensitivityChange={setSensitivity}
                 opacity={opacity}
                 onOpacityChange={setOpacity}
+                fadeEnabled={fadeEnabled}
+                onFadeEnabledChange={setFadeEnabled}
+                fadeDuration={fadeDuration}
+                onFadeDurationChange={setFadeDuration}
                 isDark={isDark}
                 onToggleTheme={() => setIsDark(!isDark)}
               />

@@ -4,6 +4,8 @@ import { AudioFeatures } from './audioProcessor';
 export interface RenderOptions {
   globalOpacity: number;
   sensitivity: number;
+  fadeEnabled: boolean;
+  fadeDuration: number;
 }
 
 interface AnimatedShape {
@@ -48,6 +50,12 @@ export class VisualRenderer {
   private animatedShapes: AnimatedShape[] = [];
   private animationTime = 0;
   private lastFrameTime = 0;
+  private currentOptions: RenderOptions = {
+    globalOpacity: 0.7,
+    sensitivity: 1,
+    fadeEnabled: false,
+    fadeDuration: 3000
+  };
 
   constructor(canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d')!;
@@ -59,6 +67,7 @@ export class VisualRenderer {
     audioFeatures: AudioFeatures,
     options: RenderOptions
   ): void {
+    this.currentOptions = options;
     const now = performance.now();
     const deltaTime = (now - this.lastFrameTime) / 1000;
     this.lastFrameTime = now;
@@ -196,25 +205,58 @@ export class VisualRenderer {
     for (let i = this.animatedShapes.length - 1; i >= 0; i--) {
       const shape = this.animatedShapes[i];
       const elapsed = now - shape.startTime;
-      const progress = Math.min(elapsed / shape.duration, 1);
 
-      if (progress >= 1) {
-        this.animatedShapes.splice(i, 1);
-        continue;
+      if (this.currentOptions.fadeEnabled) {
+        const fadeStartTime = this.currentOptions.fadeDuration;
+        const fadeDuration = 1500;
+
+        if (elapsed > fadeStartTime + fadeDuration) {
+          this.animatedShapes.splice(i, 1);
+          continue;
+        }
+
+        const animProgress = Math.min(elapsed / 1000, 1);
+        const easedProgress = this.easeInOutCubic(animProgress);
+
+        shape.x += shape.vx * (1 / 60);
+        shape.y += shape.vy * (1 / 60);
+        shape.rotation += shape.rotationSpeed * (1 / 60);
+        shape.scale = 0.5 + easedProgress * shape.scaleSpeed;
+
+        let currentOpacity = shape.baseOpacity;
+
+        if (elapsed > fadeStartTime) {
+          const fadeProgress = (elapsed - fadeStartTime) / fadeDuration;
+          currentOpacity = shape.baseOpacity * (1 - fadeProgress);
+        }
+
+        const currentSize = shape.baseSize * shape.scale;
+        this.renderShape(shape, currentSize, currentOpacity);
+      } else {
+        const progress = Math.min(elapsed / shape.duration, 1);
+
+        if (progress >= 1) {
+          const easedProgress = 1;
+          shape.scale = 0.5 + easedProgress * shape.scaleSpeed;
+          const currentSize = shape.baseSize * shape.scale;
+          const currentOpacity = shape.baseOpacity;
+
+          this.renderShape(shape, currentSize, currentOpacity);
+        } else {
+          const easedProgress = this.easeInOutCubic(progress);
+
+          shape.x += shape.vx * (1 / 60);
+          shape.y += shape.vy * (1 / 60);
+          shape.rotation += shape.rotationSpeed * (1 / 60);
+          shape.scale = 0.5 + easedProgress * shape.scaleSpeed;
+
+          const opacityMod = Math.sin(this.animationTime * 2 + shape.opacityPhase) * 0.2 + 0.8;
+          const currentOpacity = shape.baseOpacity * (1 - progress * 0.3) * opacityMod;
+          const currentSize = shape.baseSize * shape.scale;
+
+          this.renderShape(shape, currentSize, currentOpacity);
+        }
       }
-
-      const easedProgress = this.easeInOutCubic(progress);
-
-      shape.x += shape.vx * (1 / 60);
-      shape.y += shape.vy * (1 / 60);
-      shape.rotation += shape.rotationSpeed * (1 / 60);
-      shape.scale = 0.5 + easedProgress * shape.scaleSpeed;
-
-      const opacityMod = Math.sin(this.animationTime * 2 + shape.opacityPhase) * 0.2 + 0.8;
-      const currentOpacity = shape.baseOpacity * (1 - progress * 0.3) * opacityMod;
-      const currentSize = shape.baseSize * shape.scale;
-
-      this.renderShape(shape, currentSize, currentOpacity);
     }
   }
 
@@ -361,30 +403,75 @@ export class VisualRenderer {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       const elapsed = now - p.startTime;
-      const progress = Math.min(elapsed / p.duration, 1);
 
-      if (progress >= 1) {
-        this.particles.splice(i, 1);
-        continue;
+      if (this.currentOptions.fadeEnabled) {
+        const fadeStartTime = this.currentOptions.fadeDuration;
+        const fadeDuration = 1500;
+
+        if (elapsed > fadeStartTime + fadeDuration) {
+          this.particles.splice(i, 1);
+          continue;
+        }
+
+        const animProgress = Math.min(elapsed / 1000, 1);
+        const easedProgress = this.easeOutQuad(animProgress);
+
+        p.x += p.vx * (1 / 60);
+        p.y += p.vy * (1 / 60);
+        p.rotation += p.rotationSpeed * (1 / 60);
+        p.scale = 0.5 + easedProgress * (p.maxScale - 0.5);
+
+        let currentOpacity = 1;
+        if (elapsed > fadeStartTime) {
+          const fadeProgress = (elapsed - fadeStartTime) / fadeDuration;
+          currentOpacity = 1 - fadeProgress;
+        }
+
+        this.ctx.save();
+        this.ctx.globalAlpha = currentOpacity;
+        this.ctx.translate(p.x, p.y);
+        this.ctx.rotate(p.rotation);
+        this.ctx.fillStyle = p.color;
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, p.size * p.scale, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.restore();
+      } else {
+        const progress = Math.min(elapsed / p.duration, 1);
+
+        if (progress >= 1) {
+          const easedProgress = 1;
+          p.scale = 0.5 + easedProgress * (p.maxScale - 0.5);
+
+          this.ctx.save();
+          this.ctx.globalAlpha = 1;
+          this.ctx.translate(p.x, p.y);
+          this.ctx.rotate(p.rotation);
+          this.ctx.fillStyle = p.color;
+          this.ctx.beginPath();
+          this.ctx.arc(0, 0, p.size * p.scale, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.restore();
+        } else {
+          const easedProgress = this.easeOutQuad(progress);
+
+          p.x += p.vx * (1 / 60);
+          p.y += p.vy * (1 / 60);
+          p.rotation += p.rotationSpeed * (1 / 60);
+          p.scale = 0.5 + easedProgress * (p.maxScale - 0.5);
+          p.life = 1 - progress;
+
+          this.ctx.save();
+          this.ctx.globalAlpha = p.life;
+          this.ctx.translate(p.x, p.y);
+          this.ctx.rotate(p.rotation);
+          this.ctx.fillStyle = p.color;
+          this.ctx.beginPath();
+          this.ctx.arc(0, 0, p.size * p.scale, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.restore();
+        }
       }
-
-      const easedProgress = this.easeOutQuad(progress);
-
-      p.x += p.vx * (1 / 60);
-      p.y += p.vy * (1 / 60);
-      p.rotation += p.rotationSpeed * (1 / 60);
-      p.scale = 0.5 + easedProgress * (p.maxScale - 0.5);
-      p.life = 1 - progress;
-
-      this.ctx.save();
-      this.ctx.globalAlpha = p.life;
-      this.ctx.translate(p.x, p.y);
-      this.ctx.rotate(p.rotation);
-      this.ctx.fillStyle = p.color;
-      this.ctx.beginPath();
-      this.ctx.arc(0, 0, p.size * p.scale, 0, Math.PI * 2);
-      this.ctx.fill();
-      this.ctx.restore();
     }
 
     this.ctx.restore();

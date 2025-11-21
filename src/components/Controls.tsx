@@ -11,6 +11,10 @@ interface ControlsProps {
   onSensitivityChange: (value: number) => void;
   opacity: number;
   onOpacityChange: (value: number) => void;
+  fadeEnabled: boolean;
+  onFadeEnabledChange: (value: boolean) => void;
+  fadeDuration: number;
+  onFadeDurationChange: (value: number) => void;
   isDark: boolean;
   onToggleTheme: () => void;
 }
@@ -26,6 +30,10 @@ export function Controls({
   onSensitivityChange,
   opacity,
   onOpacityChange,
+  fadeEnabled,
+  onFadeEnabledChange,
+  fadeDuration,
+  onFadeDurationChange,
   isDark,
   onToggleTheme
 }: ControlsProps) {
@@ -91,6 +99,43 @@ export function Controls({
               onChange={(e) => onOpacityChange(parseFloat(e.target.value))}
               className="w-full accent-blue-500"
             />
+          </div>
+
+          <div className="pt-2 border-t border-gray-700/50">
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-medium">Fade Away</label>
+              <button
+                onClick={() => onFadeEnabledChange(!fadeEnabled)}
+                className={`relative w-12 h-6 rounded-full transition-colors ${
+                  fadeEnabled ? 'bg-blue-500' : 'bg-gray-600'
+                }`}
+              >
+                <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
+                  fadeEnabled ? 'translate-x-6' : 'translate-x-0'
+                }`} />
+              </button>
+            </div>
+
+            {fadeEnabled && (
+              <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                <label className="block text-sm font-medium mb-2">
+                  Fade Duration: {fadeDuration}s
+                </label>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  step="0.5"
+                  value={fadeDuration}
+                  onChange={(e) => onFadeDurationChange(parseFloat(e.target.value))}
+                  className="w-full accent-blue-500"
+                />
+                <div className="flex justify-between text-xs text-gray-400 mt-1">
+                  <span>1s</span>
+                  <span>10s</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
