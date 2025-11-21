@@ -73,6 +73,10 @@ export class VisualRenderer {
     this.lastFrameTime = now;
     this.animationTime += deltaTime;
 
+    if (this.currentOptions.fadeEnabled) {
+      this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    }
+
     const amplitudeScaled = audioFeatures.amplitude * options.sensitivity;
     const threshold = 0.02;
 
