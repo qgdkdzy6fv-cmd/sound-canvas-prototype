@@ -33,7 +33,6 @@ function App() {
   const [showGallery, setShowGallery] = useState(false);
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasPermission, setHasPermission] = useState(false);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -57,8 +56,6 @@ function App() {
         console.error('Failed to initialize device manager:', err);
       });
 
-      requestMicrophonePermission();
-
       return () => {
         window.removeEventListener('resize', updateSize);
         if (animationFrameRef.current) {
@@ -71,22 +68,12 @@ function App() {
     }
   }, []);
 
-  const requestMicrophonePermission = async () => {
-    if (hasPermission) return;
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(track => track.stop());
-      setHasPermission(true);
-      setError(null);
-    } catch (err) {
-      setShowPermissionDialog(true);
-    }
+  const requestMicrophonePermission = () => {
+    setShowPermissionDialog(true);
   };
 
   const handlePermissionGranted = async () => {
     setShowPermissionDialog(false);
-    setHasPermission(true);
     await startRecording();
 
     if (deviceManagerRef.current) {
@@ -231,10 +218,8 @@ function App() {
   const toggleRecording = () => {
     if (isRecording) {
       stopRecording();
-    } else if (hasPermission) {
-      startRecording();
     } else {
-      setShowPermissionDialog(true);
+      requestMicrophonePermission();
     }
   };
 
