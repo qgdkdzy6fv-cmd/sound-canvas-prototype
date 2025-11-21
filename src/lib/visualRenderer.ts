@@ -234,10 +234,9 @@ export class VisualRenderer {
       const elapsed = now - shape.startTime;
 
       if (this.currentOptions.fadeEnabled) {
-        const fadeStartTime = this.currentOptions.fadeDuration;
-        const fadeDuration = 1500;
+        const totalDuration = this.currentOptions.fadeDuration;
 
-        if (elapsed > fadeStartTime + fadeDuration) {
+        if (elapsed > totalDuration) {
           this.animatedShapes.splice(i, 1);
           continue;
         }
@@ -250,12 +249,8 @@ export class VisualRenderer {
         shape.rotation += shape.rotationSpeed * (1 / 60);
         shape.scale = 0.5 + easedProgress * shape.scaleSpeed;
 
-        let currentOpacity = shape.baseOpacity;
-
-        if (elapsed > fadeStartTime) {
-          const fadeProgress = (elapsed - fadeStartTime) / fadeDuration;
-          currentOpacity = shape.baseOpacity * (1 - fadeProgress);
-        }
+        const fadeProgress = elapsed / totalDuration;
+        const currentOpacity = shape.baseOpacity * (1 - fadeProgress);
 
         const currentSize = shape.baseSize * shape.scale;
         this.renderShape(shape, currentSize, currentOpacity);
@@ -428,10 +423,9 @@ export class VisualRenderer {
       const elapsed = now - p.startTime;
 
       if (this.currentOptions.fadeEnabled) {
-        const fadeStartTime = this.currentOptions.fadeDuration;
-        const fadeDuration = 1500;
+        const totalDuration = this.currentOptions.fadeDuration;
 
-        if (elapsed > fadeStartTime + fadeDuration) {
+        if (elapsed > totalDuration) {
           this.particles.splice(i, 1);
           continue;
         }
@@ -444,11 +438,8 @@ export class VisualRenderer {
         p.rotation += p.rotationSpeed * (1 / 60);
         p.scale = 0.5 + easedProgress * (p.maxScale - 0.5);
 
-        let currentOpacity = 1;
-        if (elapsed > fadeStartTime) {
-          const fadeProgress = (elapsed - fadeStartTime) / fadeDuration;
-          currentOpacity = 1 - fadeProgress;
-        }
+        const fadeProgress = elapsed / totalDuration;
+        const currentOpacity = 1 - fadeProgress;
 
         this.ctx.save();
         this.ctx.globalAlpha = currentOpacity;
